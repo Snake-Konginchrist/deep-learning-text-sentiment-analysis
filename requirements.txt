@@ -1,0 +1,30 @@
+# 深度学习文本情感分析项目依赖包
+# 深度学习框架
+torch>=2.7.1
+transformers>=4.53.0
+datasets>=3.6.0
+
+# 数据处理
+numpy>=2.3.1
+pandas>=2.3.0
+jieba>=0.42.1
+nltk>=3.9.1
+
+# Web框架
+Flask>=3.1.1
+flask-cors>=6.0.1
+
+# 机器学习工具
+scikit-learn>=1.7.0
+
+# 可视化
+matplotlib>=3.10.3
+seaborn>=0.13.2
+
+# 工具包
+tqdm>=4.67.1
+python-dotenv>=1.1.1
+
+# 数据获取
+kaggle>=1.7.4.5
+requests>=2.32.4
