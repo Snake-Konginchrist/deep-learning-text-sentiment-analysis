@@ -119,82 +119,61 @@ graph TD
 
 ## 五、系统结构设计
 
-```mermaid
-graph TB
-    subgraph "用户层"
-        U[用户界面<br/>Vue3 + TypeScript + Element Plus]
-    end
-    
-    subgraph "API层"
-        API[后端API服务<br/>Flask + CORS]
-        API --> API1[情感分析接口<br/>/analyze]
-        API --> API2[批量分析接口<br/>/analyze/batch]
-        API --> API3[模型管理接口<br/>/models]
-        API --> API4[训练接口<br/>/training]
-    end
-    
-    subgraph "业务逻辑层"
-        SA[情感分析器<br/>SentimentAnalyzer]
-        TM[训练管理器<br/>TrainerManager]
-        DL[数据加载器<br/>DatasetLoader]
-    end
-    
-    subgraph "模型层"
-        M1[TextCNN<br/>卷积神经网络]
-        M2[BiLSTM<br/>双向LSTM]
-        M3[BERT<br/>预训练模型]
-    end
-    
-    subgraph "数据层"
-        D1[中文数据集<br/>ChnSentiCorp]
-        D2[英文数据集<br/>IMDb]
-        D3[模型文件<br/>*.pth]
-    end
-    
-    subgraph "工具层"
-        TP[文本处理器<br/>TextProcessor]
-        Config[配置管理<br/>Config]
-    end
-    
-    U --> API
-    API --> SA
-    API --> TM
-    API --> DL
-    
-    SA --> M1
-    SA --> M2
-    SA --> M3
-    
-    TM --> M1
-    TM --> M2
-    TM --> M3
-    
-    DL --> D1
-    DL --> D2
-    
-    SA --> D3
-    TM --> D3
-    
-    SA --> TP
-    TM --> TP
-    DL --> TP
-    
-    SA --> Config
-    TM --> Config
-    DL --> Config
-    
-    style U fill:#e3f2fd,color:#1976d2
-    style API fill:#f3e5f5,color:#7b1fa2
-    style SA fill:#e8f5e8,color:#388e3c
-    style TM fill:#e8f5e8,color:#388e3c
-    style DL fill:#e8f5e8,color:#388e3c
-    style M1 fill:#fff3e0,color:#f57c00
-    style M2 fill:#fff3e0,color:#f57c00
-    style M3 fill:#fff3e0,color:#f57c00
-    style D1 fill:#fce4ec,color:#c2185b
-    style D2 fill:#fce4ec,color:#c2185b
-    style D3 fill:#fce4ec,color:#c2185b
+### 🏗️ 系统架构分层
+
+| 层级 | 组件 | 技术栈 | 主要功能 |
+|------|------|--------|----------|
+| **用户层** | Web前端界面 | Vue 3 + TypeScript + Element Plus | 用户交互、数据展示、操作界面 |
+| **API层** | RESTful API服务 | Flask + CORS | 路由处理、请求响应、接口管理 |
+| **业务逻辑层** | 核心业务模块 | Python + PyTorch | 情感分析、模型训练、数据处理 |
+| **模型层** | 深度学习模型 | TextCNN/BiLSTM/BERT | 特征提取、情感分类、模型推理 |
+| **数据层** | 数据存储管理 | 本地文件系统 | 数据集存储、模型文件管理 |
+| **工具层** | 辅助工具模块 | jieba/NLTK/transformers | 文本预处理、配置管理、工具函数 |
+
+### 📋 核心模块详细说明
+
+#### 🎨 前端模块
+| 页面/组件 | 功能描述 | 主要特性 |
+|-----------|----------|----------|
+| 首页 (HomeView) | 项目介绍和导航 | 响应式布局、项目概览 |
+| 数据集管理 (DatasetView) | 数据下载和管理 | 进度显示、多数据源支持 |
+| 模型训练 (TrainingView) | 模型训练控制 | 实时监控、参数配置 |
+| 模型管理 (ModelsView) | 模型加载和切换 | 模型列表、状态管理 |
+| 情感分析 (AnalyzeView) | 文本分析界面 | 单文本/批量分析、结果可视化 |
+
+#### ⚙️ 后端模块
+| 模块 | 文件路径 | 主要功能 |
+|------|----------|----------|
+| API服务 | `src/api/app.py` | 主要API路由和请求处理 |
+| 训练API | `src/api/training_api.py` | 模型训练相关接口 |
+| 情感分析器 | `src/services/sentiment_analyzer.py` | 核心分析逻辑 |
+| 训练管理器 | `src/training/trainer_manager.py` | 训练流程控制 |
+| 数据加载器 | `src/scripts/dataset_loader.py` | 数据集下载和预处理 |
+| 文本处理器 | `src/utils/text_processor.py` | 文本预处理工具 |
+| 配置管理 | `src/utils/config.py` | 系统配置和路径管理 |
+
+#### 🤖 模型架构
+| 模型类型 | 文件路径 | 适用场景 | 特点 |
+|----------|----------|----------|------|
+| TextCNN | `src/architectures/textcnn.py` | 短文本分类 | 快速训练、效果稳定 |
+| BiLSTM | `src/architectures/bilstm.py` | 序列文本分析 | 捕获上下文、语义理解强 |
+| BERT | `src/architectures/bert_model.py` | 复杂语义理解 | 预训练优势、准确率高 |
+
+### 🔄 数据流向
+
 ```
+用户输入 → 前端界面 → API接口 → 业务逻辑 → 模型推理 → 结果返回 → 前端展示
+```
+
+### 🛠️ 技术选型理由
+
+| 技术 | 选择理由 |
+|------|----------|
+| **Vue 3** | 现代化前端框架，组合式API，TypeScript支持好 |
+| **Element Plus** | 成熟的UI组件库，开发效率高，界面美观 |
+| **Flask** | 轻量级Web框架，易于扩展，适合API开发 |
+| **PyTorch** | 灵活的深度学习框架，研究友好，社区活跃 |
+| **Hugging Face** | 丰富的预训练模型，标准化的数据集接口 |
 
 ---
 
