@@ -157,13 +157,18 @@ class TextCNNTrainer:
             save_best: 是否保存最佳模型
         返回值：训练结果字典
         """
-        print(f"开始训练TextCNN模型，共{epochs}轮...")
+        print(f"🎯 开始训练TextCNN模型，共{epochs}轮...")
+        print(f"📊 训练集大小: {len(train_loader.dataset)}")
+        print(f"📊 验证集大小: {len(val_loader.dataset)}")
+        print(f"📊 批次大小: {train_loader.batch_size}")
+        print("=" * 60)
         
         best_val_acc = 0.0
         best_model_state = None
         
         for epoch in range(epochs):
-            print(f"\n=== Epoch {epoch + 1}/{epochs} ===")
+            print(f"\n🔄 Epoch {epoch + 1}/{epochs}")
+            print("-" * 40)
             
             # 训练
             train_loss, train_acc = self.train_epoch(train_loader)
@@ -177,19 +182,24 @@ class TextCNNTrainer:
             self.history['val_loss'].append(val_loss)
             self.history['val_acc'].append(val_acc)
             
-            print(f"训练损失: {train_loss:.4f}, 训练准确率: {train_acc:.4f}")
-            print(f"验证损失: {val_loss:.4f}, 验证准确率: {val_acc:.4f}")
+            print(f"📈 训练结果:")
+            print(f"   - 训练损失: {train_loss:.4f}")
+            print(f"   - 训练准确率: {train_acc:.4f} ({train_acc*100:.2f}%)")
+            print(f"   - 验证损失: {val_loss:.4f}")
+            print(f"   - 验证准确率: {val_acc:.4f} ({val_acc*100:.2f}%)")
             
             # 保存最佳模型
             if save_best and val_acc > best_val_acc:
                 best_val_acc = val_acc
                 best_model_state = self.model.state_dict().copy()
-                print(f"★ 新的最佳模型！验证准确率: {val_acc:.4f}")
+                print(f"🏆 新的最佳模型！验证准确率: {val_acc:.4f} ({val_acc*100:.2f}%)")
+            else:
+                print(f"📊 当前最佳验证准确率: {best_val_acc:.4f} ({best_val_acc*100:.2f}%)")
         
         # 恢复最佳模型权重
         if save_best and best_model_state is not None:
             self.model.load_state_dict(best_model_state)
-            print(f"\n恢复最佳模型权重，验证准确率: {best_val_acc:.4f}")
+            print(f"\n✅ 恢复最佳模型权重，验证准确率: {best_val_acc:.4f} ({best_val_acc*100:.2f}%)")
         
         # 保存模型
         model_path = self.save_model()

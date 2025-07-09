@@ -194,6 +194,10 @@ def train_model():
         def training_task():
             global training_status
             try:
+                print(f"\n🚀 开始训练 {model_type} 模型 ({language})")
+                print(f"📋 训练参数: epochs={epochs}, batch_size={batch_size}, learning_rate={learning_rate}")
+                print("=" * 60)
+                
                 training_status.update({
                     "is_training": True,
                     "current_task": f"训练{model_type}模型",
@@ -207,6 +211,8 @@ def train_model():
                 def progress_callback(progress: int, message: str):
                     training_status["progress"] = progress
                     training_status["message"] = message
+                    # 在终端中显示进度
+                    print(f"📊 进度 {progress}%: {message}")
                 
                 from ..training.trainer_manager import TrainerManager
                 trainer_manager = TrainerManager(
@@ -215,7 +221,10 @@ def train_model():
                     progress_callback=progress_callback
                 )
                 
+                print(f"✅ 训练管理器初始化完成")
+                
                 # 执行完整的训练流水线
+                print(f"🔄 开始执行训练流水线...")
                 results = trainer_manager.full_training_pipeline(
                     epochs=epochs,
                     learning_rate=learning_rate,
@@ -240,16 +249,25 @@ def train_model():
                     }
                 })
                 
+                print("=" * 60)
                 print(f"✅ {model_type}模型训练完成!")
+                print(f"📊 训练轮数: {results['epochs']}")
                 print(f"📊 最佳验证准确率: {results['best_val_accuracy']:.4f}")
+                print(f"📊 最终训练准确率: {results['final_train_accuracy']:.4f}")
+                print(f"📊 最终验证准确率: {results['final_val_accuracy']:.4f}")
                 print(f"📊 测试准确率: {results['test_results']['accuracy']:.4f}")
                 print(f"💾 模型保存路径: {results['model_path']}")
+                if results.get('early_stopped', False):
+                    print(f"⏹️ 训练提前停止")
+                print("=" * 60)
                 
             except Exception as e:
                 import traceback
                 error_detail = traceback.format_exc()
+                print("=" * 60)
                 print(f"❌ 训练失败: {str(e)}")
                 print(f"详细错误: {error_detail}")
+                print("=" * 60)
                 
                 training_status.update({
                     "is_training": False,

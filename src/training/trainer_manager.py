@@ -138,17 +138,26 @@ class TrainerManager:
             train_data, val_data, test_data: 原始数据集
             max_length: 最大序列长度
         """
+        print(f"🔧 开始准备训练数据...")
         self._update_progress(20, "准备训练数据...")
         
         if max_length is None:
             max_length = Config.MODEL_CONFIGS[self.model_type]['max_seq_length']
         
+        print(f"   - 模型类型: {self.model_type}")
+        print(f"   - 最大序列长度: {max_length}")
+        print(f"   - 批次大小: {Config.TRAINING_CONFIG['batch_size']}")
+        
         if self.model_type == "bert":
             # BERT数据预处理
+            print(f"   - 使用BERT tokenizer进行数据预处理")
             self._prepare_bert_data(train_data, val_data, test_data, max_length)
         else:
             # 传统模型数据预处理
+            print(f"   - 构建词汇表并进行数据编码")
             self._prepare_traditional_data(train_data, val_data, test_data, max_length)
+        
+        print(f"✅ 数据准备完成")
     
     def _prepare_bert_data(self, train_data, val_data, test_data, max_length: int) -> None:
         """
@@ -263,6 +272,7 @@ class TrainerManager:
             batch_size: 批次大小
         返回值：训练结果字典
         """
+        print(f"🎯 开始创建训练器...")
         self._update_progress(30, "创建训练器...")
         
         # 使用默认参数
@@ -271,6 +281,11 @@ class TrainerManager:
             # BERT通常需要较少的轮数
             if self.model_type == "bert":
                 epochs = min(epochs, 3)
+        
+        print(f"📋 训练配置:")
+        print(f"   - 训练轮数: {epochs}")
+        print(f"   - 学习率: {learning_rate or Config.TRAINING_CONFIG['learning_rate']}")
+        print(f"   - 批次大小: {batch_size or Config.TRAINING_CONFIG['batch_size']}")
         
         # 创建对应的训练器
         if self.model_type == "textcnn":
@@ -281,10 +296,12 @@ class TrainerManager:
             self.trainer = BertTrainer(self.language)
         
         # 创建模型
+        print(f"🏗️ 创建{self.model_type}模型...")
         self._update_progress(40, "创建模型...")
         model = self.trainer.create_model()
         
         # 开始训练
+        print(f"🚀 开始训练模型...")
         self._update_progress(50, "开始训练...")
         results = self.trainer.train(
             self.train_loader, 
@@ -294,10 +311,12 @@ class TrainerManager:
         )
         
         # 测试模型
+        print(f"🧪 开始测试模型...")
         self._update_progress(90, "测试模型...")
         test_results = self.trainer.evaluate(self.test_loader)
         results['test_results'] = test_results
         
+        print(f"✅ 训练流程完成")
         self._update_progress(100, "训练完成")
         
         return results
@@ -309,11 +328,17 @@ class TrainerManager:
             max_samples: 最大样本数量
         返回值：(train_data, val_data, test_data)
         """
+        print(f"📂 开始加载{self.language}数据集...")
         self._update_progress(10, "加载数据集...")
         
         # 智能加载数据（优先使用已下载的数据集）
         loader = DatasetLoader(language=self.language)
         train_data, val_data, test_data = loader.get_or_download_data(max_samples)
+        
+        print(f"✅ 数据集加载完成:")
+        print(f"   - 训练集: {len(train_data)} 条")
+        print(f"   - 验证集: {len(val_data)} 条") 
+        print(f"   - 测试集: {len(test_data)} 条")
         
         return train_data, val_data, test_data
     
