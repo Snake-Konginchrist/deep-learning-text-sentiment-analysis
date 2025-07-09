@@ -165,14 +165,41 @@ const deleteModel = async (model: any) => {
     )
 
     if (confirmed) {
-      const index = trainedModels.value.findIndex(m => m.id === model.id)
-      if (index > -1) {
-        trainedModels.value.splice(index, 1)
-        ElMessage.success(`已删除 ${model.name}`)
+      // 获取原始模型文件名
+      const originalModel = sentimentStore.trainedModels.find(m =>
+        m.model_type === model.type && m.language === model.language
+      )
+
+      if (!originalModel) {
+        ElMessage.error('找不到对应的模型文件')
+        return
+      }
+
+      // 调用后端API删除模型
+      const success = await sentimentStore.deleteModel(originalModel.filename)
+
+      if (success) {
+        // 从本地列表中移除
+        const index = trainedModels.value.findIndex(m => m.id === model.id)
+        if (index > -1) {
+          trainedModels.value.splice(index, 1)
+        }
+
+        ElMessage.success(`已成功删除 ${model.name}`)
+
+        // 如果删除的是当前选中的模型，清除选中状态
+        if (selectedModel.value === model.id) {
+          selectedModel.value = ''
+        }
+      } else {
+        ElMessage.error(sentimentStore.error || '删除模型失败')
       }
     }
   } catch (error) {
-    // 用户取消操作
+    // 用户取消操作或其他错误
+    if (error !== 'cancel') {
+      ElMessage.error('删除操作失败')
+    }
   }
 }
 

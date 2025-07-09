@@ -220,6 +220,19 @@ export class ApiService {
     const response = await apiClient.get('/models/trained')
     return response.data
   }
+
+  /**
+   * 删除指定模型
+   */
+  static async deleteModel(filename: string): Promise<ApiResponse<{
+    deleted_file: string
+    file_size: number
+  }>> {
+    const response = await apiClient.delete('/models/delete', {
+      data: { filename }
+    })
+    return response.data
+  }
 }
 
 export default ApiService

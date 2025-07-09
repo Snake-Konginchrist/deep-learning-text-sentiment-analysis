@@ -360,6 +360,30 @@ export const useSentimentStore = defineStore('sentiment', () => {
     }
   }
 
+  /**
+   * 删除指定模型
+   */
+  const deleteModel = async (filename: string) => {
+    try {
+      const response = await ApiService.deleteModel(filename)
+
+      if (response.status === 'success' && response.data) {
+        // 从本地列表中移除已删除的模型
+        const index = trainedModels.value.findIndex(model => model.filename === filename)
+        if (index > -1) {
+          trainedModels.value.splice(index, 1)
+        }
+        return true
+      } else {
+        error.value = response.message || '删除模型失败'
+        return false
+      }
+    } catch (err: any) {
+      error.value = err.message || '网络错误'
+      return false
+    }
+  }
+
   return {
     // 状态
     isAnalyzing,
@@ -393,6 +417,7 @@ export const useSentimentStore = defineStore('sentiment', () => {
     healthCheck,
     loadModel,
     fetchCurrentModel,
-    fetchTrainedModelFiles
+    fetchTrainedModelFiles,
+    deleteModel
   }
 })

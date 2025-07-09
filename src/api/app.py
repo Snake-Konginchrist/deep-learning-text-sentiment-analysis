@@ -458,6 +458,80 @@ def get_current_model() -> Dict[str, Any]:
             "message": f"获取模型信息失败: {str(e)}"
         }), 500
 
+@app.route("/models/delete", methods=["DELETE"])
+def delete_model() -> Dict[str, Any]:
+    """
+    删除指定模型端点
+    请求体: {"filename": "模型文件名"}
+    返回值：删除结果
+    使用场景：前端删除指定的模型文件
+    """
+    try:
+        # 获取请求数据
+        data = request.get_json()
+        
+        if not data or "filename" not in data:
+            return jsonify({
+                "status": "error",
+                "message": "请求数据格式错误，需要包含'filename'字段"
+            }), 400
+        
+        filename = data["filename"]
+        
+        # 验证文件名格式
+        if not filename.endswith('.pth'):
+            return jsonify({
+                "status": "error",
+                "message": "无效的模型文件名，必须以.pth结尾"
+            }), 400
+        
+        # 构建模型文件路径
+        models_dir = Config.MODELS_DIR
+        model_path = models_dir / filename
+        
+        # 检查文件是否存在
+        if not model_path.exists():
+            return jsonify({
+                "status": "error",
+                "message": f"模型文件不存在: {filename}"
+            }), 404
+        
+        # 检查是否为当前加载的模型
+        if analyzer and analyzer.model is not None:
+            current_model_path = Config.get_model_path(analyzer.model_type, analyzer.language)
+            if str(model_path) == str(current_model_path):
+                return jsonify({
+                    "status": "error",
+                    "message": "无法删除当前正在使用的模型，请先切换到其他模型"
+                }), 400
+        
+        # 删除文件
+        model_path.unlink()
+        
+        print(f"已删除模型文件: {filename}")
+        
+        return jsonify({
+            "status": "success",
+            "message": f"成功删除模型: {filename}",
+            "data": {
+                "deleted_file": filename,
+                "file_size": model_path.stat().st_size if model_path.exists() else 0
+            }
+        })
+        
+    except PermissionError:
+        return jsonify({
+            "status": "error",
+            "message": "权限不足，无法删除模型文件"
+        }), 403
+    except Exception as e:
+        print(f"删除模型时出错: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            "status": "error",
+            "message": f"删除模型失败: {str(e)}"
+        }), 500
+
 @app.errorhandler(404)
 def not_found(error) -> Dict[str, Any]:
     """
