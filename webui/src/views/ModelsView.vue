@@ -154,6 +154,19 @@ const switchModel = async (model: any) => {
 // 删除模型
 const deleteModel = async (model: any) => {
   try {
+    // 检查是否为当前正在使用的模型
+    if (selectedModel.value === model.id) {
+      ElMessageBox.alert(
+        '无法删除当前正在使用的模型，请先切换到其他模型后再删除。',
+        '模型正在使用中',
+        {
+          confirmButtonText: '确定',
+          type: 'warning'
+        }
+      )
+      return
+    }
+
     const confirmed = await ElMessageBox.confirm(
       `确定要删除 ${model.name} 模型吗？此操作不可撤销。`,
       '确认删除模型',
@@ -192,7 +205,19 @@ const deleteModel = async (model: any) => {
           selectedModel.value = ''
         }
       } else {
-        ElMessage.error(sentimentStore.error || '删除模型失败')
+        // 检查是否为"正在使用"的错误
+        if (sentimentStore.error && sentimentStore.error.includes('正在使用')) {
+          ElMessageBox.alert(
+            '无法删除当前正在使用的模型，请先切换到其他模型后再删除。',
+            '模型正在使用中',
+            {
+              confirmButtonText: '确定',
+              type: 'warning'
+            }
+          )
+        } else {
+          ElMessage.error(sentimentStore.error || '删除模型失败')
+        }
       }
     }
   } catch (error) {
@@ -430,6 +455,7 @@ onMounted(() => {
                   下载
                 </el-button>
                 <el-button
+                  v-if="selectedModel !== model.id"
                   type="danger"
                   size="small"
                   @click="deleteModel(model)"
